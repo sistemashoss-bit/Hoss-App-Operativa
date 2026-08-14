@@ -3,22 +3,22 @@ import { Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
   TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/auth';
 
 export default function LoginScreen() {
-  const theme = useTheme();
   const router = useRouter();
   const { user, signIn } = useAuth();
 
@@ -45,11 +45,20 @@ export default function LoginScreen() {
   }
 
   return (
-    <ThemedView style={styles.container}>
+
+     <ImageBackground
+      source={require('@/assets/images/login-bg.avif')}
+      style={styles.background}
+      resizeMode="cover"
+    >
+<View style={styles.overlay} />
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.form}>
+            
+<View style={styles.card}>
           <ThemedView style={styles.logoWrapper}>
             <Image
               source={require('@/assets/images/login-logo.png')}
@@ -59,24 +68,24 @@ export default function LoginScreen() {
           </ThemedView>
 
           <ThemedText type="subtitle" style={styles.title}>
-            Iniciar sesión
+            INICIAR SESIÓN
           </ThemedText>
-
+ 
           <TextInput
-            style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-            placeholder="Correo"
-            placeholderTextColor={theme.textSecondary}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            value={email}
-            onChangeText={setEmail}
+           style={styles.input}
+           placeholder="Correo electrónico"
+           placeholderTextColor="#C4A85C"
+           keyboardType="email-address"
+           autoCapitalize="none"
+           autoCorrect={false}
+           value={email}
+           onChangeText={setEmail}
           />
 
           <TextInput
-            style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
+            style={styles.input}
             placeholder="Contraseña"
-            placeholderTextColor={theme.textSecondary}
+            placeholderTextColor="#C4A85C"
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -88,25 +97,40 @@ export default function LoginScreen() {
             </ThemedText>
           )}
 
-          <Pressable
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading || !email || !password}>
-            {loading ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <ThemedText type="smallBold" style={styles.buttonText}>
-                Entrar
-              </ThemedText>
-            )}
-          </Pressable>
+         <Pressable
+          style={[
+            styles.button
+          ]}
+          onPress={handleLogin}
+          disabled={loading || !email || !password}
+        >
+          {loading ? (
+            <ActivityIndicator color="#111111" />
+          ) : (
+            <ThemedText type="smallBold" style={styles.buttonText}>
+              INICIAR SESIÓN
+            </ThemedText>
+          )}
+        </Pressable>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+
+   background: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+
+overlay: {
+  ...StyleSheet.absoluteFill,
+  backgroundColor: 'rgba(0, 0, 0, 0.30)',
+},
   container: {
     flex: 1,
   },
@@ -119,47 +143,74 @@ const styles = StyleSheet.create({
   form: {
     width: '100%',
     maxWidth: MaxContentWidth / 2,
-    gap: Spacing.three,
+
   },
   logoWrapper: {
     alignSelf: 'center',
-    height: 125,
-    width: 125,
-    borderRadius: 125,
+     width: 96,
+    height: 96,
+    borderRadius: 48,
+
+    backgroundColor: '#171717',
+    borderWidth: 1,
+    borderColor: '#C4A85C',
+
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#171717',
-    marginBottom: Spacing.three,
+
+    marginBottom: 18,
   },
   logo: {
     height: 45,
-    width: 110,
+    width: 82,
   },
   title: {
     textAlign: 'center',
+    color: '#D4B766',
+    fontSize: 16,
+    fontWeight: '500',
+    letterSpacing: 2,
+    marginBottom: 40,
   },
   input: {
-    borderWidth: 1,
-    borderRadius: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.three,
-    fontSize: 16,
+  height: 50,
+  borderBottomWidth: 1,
+  borderBottomColor: '#C4A85C',
+  color: '#FFFFFF',
+  fontSize: 15,
+  paddingHorizontal: 6,
+  marginBottom: 16,
   },
   error: {
     color: '#e5484d',
   },
   button: {
-    backgroundColor: '#208AEF',
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: Spacing.two,
+    height: 54,
+     backgroundColor: '#D4B766',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: 30,
+  borderRadius: 2,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
+  
   buttonText: {
-    color: '#ffffff',
+   color: '#111111',
+   fontSize: 13,
+  fontWeight: '700',
+  letterSpacing: 1.5,
   },
+
+  card: {
+  width: '100%',
+  maxWidth: 320,
+  alignSelf: 'center',
+
+  paddingHorizontal: 20,
+  paddingVertical: 24,
+
+  backgroundColor: 'rgba(15, 15, 15, 0.35)',
+  borderRadius: 12,
+},
+
+
 });
