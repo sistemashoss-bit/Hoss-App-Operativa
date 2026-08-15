@@ -444,12 +444,12 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     color: TEXT_PRIMARY,
-fontSize: 16,
-  lineHeight: 22,
-  fontWeight: '700',
-  letterSpacing: 1.4,
-  textAlign: 'center',
-  marginBottom: 28,
+    fontSize: 16,
+      lineHeight: 22,
+      fontWeight: '700',
+      letterSpacing: 1.4,
+      textAlign: 'center',
+      marginBottom: 28,
   },
 
   /* MENÚ */
