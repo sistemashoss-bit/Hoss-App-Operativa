@@ -62,8 +62,9 @@ export default function LoginScreen() {
 
   return (
     <ImageBackground
-      source={require('@/assets/images/login-bg.avif')}
+      source={require('@/assets/images/login-bg.png')}
       style={styles.background}
+      imageStyle={styles.backgroundImage}
       resizeMode="cover"
     >
       {/* Hace que la imagen funcione más como textura */}
@@ -190,14 +191,14 @@ const styles = StyleSheet.create({
 
   background: {
     flex: 1,
-    backgroundColor: BACKGROUND,
+   width: '100%',
+  height: '100%',
+  backgroundColor: BACKGROUND,
   },
 
   overlay: {
     ...StyleSheet.absoluteFill,
-
-    backgroundColor:
-      'rgba(241, 238, 232, 0.84)',
+  backgroundColor: 'rgba(241, 238, 232, 0.72)',
   },
 
   safeArea: {
@@ -208,6 +209,11 @@ const styles = StyleSheet.create({
 
     paddingHorizontal: Spacing.four,
   },
+  backgroundImage: {
+  width: '100%',
+  height: '100%',
+},
+
 
   form: {
     width: '100%',
