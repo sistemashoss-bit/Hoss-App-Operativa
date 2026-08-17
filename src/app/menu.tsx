@@ -46,7 +46,7 @@ type PreviewMenu =
   | 'empleado'
   | 'instalador';
 
-const PREVIEW_MENU: PreviewMenu = 'instalador';
+const PREVIEW_MENU: PreviewMenu = 'admin';
 
 /*
  * TIPOS
@@ -244,12 +244,24 @@ export default function MenuScreen() {
    */
 
   function handleSelect(option: MenuOption) {
-    console.log(`Seleccionado: ${option.key}`);
+    switch (option.key) {
+    case 'recepciones':
+      router.push('/recepciones');
+      break;
 
-    /*
-     * Sin navegación real todavía.
-     */
+    case 'transferencias':
+      router.push('/transferencias');
+      break;
+
+    case 'inventarios':
+      router.push('/inventarios');
+      break;
+
+    case 'instalaciones':
+      router.push('/instalaciones');
+      break;
   }
+}
 
   /*
    * COLOR SUBTÍTULO
