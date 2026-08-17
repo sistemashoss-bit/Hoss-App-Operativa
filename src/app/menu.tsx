@@ -13,15 +13,44 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/lib/auth';
 
+/*
+ * COLORES
+ */
+
 const GOLD = '#D4B766';
+const GOLD_DARK = '#9B7417';
 const BLACK = '#0D0D0D';
 
 const BACKGROUND = '#F1EEE8';
+const DRAWER_BACKGROUND = '#F5F1E8';
 
 const DANGER = '#D77A7A';
 const TEXT_MUTED = '#98938A';
 
 const DRAWER_WIDTH = 300;
+
+/*
+ * ============================================
+ * PREVIEW TEMPORAL
+ * ============================================
+ *
+ * Cambia SOLO esta línea para visualizar:
+ *
+ * 'admin'
+ * 'empleado'
+ * 'instalador'
+ */
+
+type PreviewMenu =
+  | 'admin'
+  | 'empleado'
+  | 'instalador';
+
+const PREVIEW_MENU: PreviewMenu = 'instalador';
+
+/*
+ * TIPOS
+ */
 
 type MenuOption = {
   key:
@@ -32,10 +61,17 @@ type MenuOption = {
 
   label: string;
   subtitle: string;
+
   status?: 'danger' | 'active' | 'neutral';
 };
 
-const OPTIONS: MenuOption[] = [
+/*
+ * ============================================
+ * ADMIN
+ * ============================================
+ */
+
+const ADMIN_OPTIONS: MenuOption[] = [
   {
     key: 'recepciones',
     label: 'Recepciones',
@@ -62,11 +98,65 @@ const OPTIONS: MenuOption[] = [
   },
 ];
 
+/*
+ * ============================================
+ * EMPLEADO SUCURSAL
+ * ============================================
+ */
+
+const EMPLOYEE_OPTIONS: MenuOption[] = [
+  {
+    key: 'inventarios',
+    label: 'Inventarios',
+    subtitle: 'Consultar inventario',
+    status: 'neutral',
+  },
+  {
+    key: 'transferencias',
+    label: 'Transferencias',
+    subtitle: 'Transferencias activas',
+    status: 'active',
+  },
+];
+
+/*
+ * ============================================
+ * INSTALADOR
+ * ============================================
+ */
+
+const INSTALLER_OPTIONS: MenuOption[] = [
+  {
+    key: 'instalaciones',
+    label: 'Instalaciones',
+    subtitle: 'Consultar instalaciones',
+    status: 'neutral',
+  },
+];
+
+/*
+ * OPCIONES DEL PREVIEW
+ */
+
+const OPTIONS =
+  PREVIEW_MENU === 'empleado'
+    ? EMPLOYEE_OPTIONS
+    : PREVIEW_MENU === 'instalador'
+      ? INSTALLER_OPTIONS
+      : ADMIN_OPTIONS;
+
+/*
+ * ============================================
+ * COMPONENTE
+ * ============================================
+ */
+
 export default function MenuScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] =
+    useState(false);
 
   const slideAnim = useRef(
     new Animated.Value(-DRAWER_WIDTH),
@@ -76,9 +166,28 @@ export default function MenuScreen() {
     new Animated.Value(0),
   ).current;
 
+  /*
+   * AUTH
+   */
+
   if (!user) {
     return <Redirect href="/" />;
   }
+
+  /*
+   * ROL VISUAL TEMPORAL
+   */
+
+  const previewRole =
+    PREVIEW_MENU === 'empleado'
+      ? 'Empleado de sucursal'
+      : PREVIEW_MENU === 'instalador'
+        ? 'Instalador'
+        : user.role;
+
+  /*
+   * DRAWER
+   */
 
   function openDrawer() {
     setDrawerOpen(true);
@@ -118,6 +227,10 @@ export default function MenuScreen() {
     });
   }
 
+  /*
+   * LOGOUT
+   */
+
   async function handleSignOut() {
     closeDrawer();
 
@@ -126,12 +239,21 @@ export default function MenuScreen() {
     router.replace('/');
   }
 
+  /*
+   * MÓDULO
+   */
+
   function handleSelect(option: MenuOption) {
     console.log(`Seleccionado: ${option.key}`);
 
-    // Cuando existan las rutas:
-    // router.push(`/${option.key}`);
+    /*
+     * Sin navegación real todavía.
+     */
   }
+
+  /*
+   * COLOR SUBTÍTULO
+   */
 
   function getSubtitleColor(
     status?: MenuOption['status'],
@@ -147,6 +269,12 @@ export default function MenuScreen() {
         return TEXT_MUTED;
     }
   }
+
+  /*
+   * ============================================
+   * ICONOS
+   * ============================================
+   */
 
   function renderOperationIcon(
     key: MenuOption['key'],
@@ -166,13 +294,19 @@ export default function MenuScreen() {
             <View style={styles.transferRow}>
               <View style={styles.transferLine} />
 
-              <ThemedText style={styles.transferArrow}>
+              <ThemedText
+                style={styles.transferArrow}
+              >
                 ›
               </ThemedText>
             </View>
 
-            <View style={styles.transferRowReverse}>
-              <ThemedText style={styles.transferArrow}>
+            <View
+              style={styles.transferRowReverse}
+            >
+              <ThemedText
+                style={styles.transferArrow}
+              >
                 ‹
               </ThemedText>
 
@@ -220,7 +354,10 @@ export default function MenuScreen() {
         style={styles.safeArea}
         edges={['top', 'left', 'right']}
       >
-        {/* NAVBAR */}
+        {/* ===================================== */}
+        {/* NAVBAR SUPERIOR */}
+        {/* ===================================== */}
+
         <View style={styles.topBar}>
           <View style={styles.topBarLeft}>
             <Pressable
@@ -262,52 +399,66 @@ export default function MenuScreen() {
               </ThemedText>
             </View>
           </View>
-
-          <Pressable
-            onPress={openDrawer}
-            style={styles.profileButton}
-            accessibilityRole="button"
-            accessibilityLabel="Abrir perfil"
-          >
-            <View style={styles.profileHead} />
-            <View style={styles.profileBody} />
-          </Pressable>
         </View>
 
+        {/* ===================================== */}
         {/* CONTENIDO */}
+        {/* ===================================== */}
+
         <View style={styles.content}>
           <View style={styles.operationsWrapper}>
             {/* TÍTULO */}
+
             <View style={styles.operationsHeader}>
-              <ThemedText style={styles.operationsTitle}>
+              <ThemedText
+                style={styles.operationsTitle}
+              >
                 OPERACIONES
               </ThemedText>
 
               <ThemedText
-                style={styles.operationsDescription}
+                style={
+                  styles.operationsDescription
+                }
               >
                 Selecciona un módulo
               </ThemedText>
             </View>
 
-            {/* MÓDULOS */}
-            <View style={styles.operationsList}>
+            {/* LISTA */}
+
+            <View
+              style={[
+                styles.operationsList,
+
+                PREVIEW_MENU === 'empleado' &&
+                  styles.employeeOperationsList,
+
+                PREVIEW_MENU === 'instalador' &&
+                  styles.installerOperationsList,
+              ]}
+            >
               {OPTIONS.map((option, index) => (
                 <View key={option.key}>
                   <Pressable
-                    onPress={() => handleSelect(option)}
+                    onPress={() =>
+                      handleSelect(option)
+                    }
                     style={({ pressed }) => [
                       styles.operationRow,
+
                       pressed &&
                         styles.operationRowPressed,
                     ]}
                   >
                     {/* ICONO */}
+
                     <View style={styles.operationIcon}>
                       {renderOperationIcon(option.key)}
                     </View>
 
                     {/* TEXTO */}
+
                     <View style={styles.operationContent}>
                       <ThemedText
                         style={styles.operationLabel}
@@ -318,6 +469,7 @@ export default function MenuScreen() {
                       <ThemedText
                         style={[
                           styles.operationSubtitle,
+
                           {
                             color: getSubtitleColor(
                               option.status,
@@ -330,6 +482,7 @@ export default function MenuScreen() {
                     </View>
 
                     {/* FLECHA */}
+
                     <View
                       style={
                         styles.operationArrowContainer
@@ -355,7 +508,10 @@ export default function MenuScreen() {
         </View>
       </SafeAreaView>
 
+      {/* ===================================== */}
       {/* DRAWER */}
+      {/* ===================================== */}
+
       <Modal
         visible={drawerOpen}
         transparent
@@ -379,6 +535,7 @@ export default function MenuScreen() {
         <Animated.View
           style={[
             styles.drawer,
+
             {
               transform: [
                 {
@@ -393,12 +550,30 @@ export default function MenuScreen() {
               edges={['top', 'left', 'bottom']}
               style={styles.drawerContent}
             >
-              {/* USUARIO */}
+              {/* BRANDING */}
+
+              <View style={styles.drawerBrand}>
+                <ThemedText
+                  style={styles.drawerBrandMain}
+                >
+                  HOSS
+                </ThemedText>
+
+                <ThemedText
+                  style={styles.drawerBrandSub}
+                >
+                  MOBILE
+                </ThemedText>
+              </View>
+
+              {/* PERFIL */}
+
               <View style={styles.drawerProfile}>
                 <View style={styles.drawerAvatar}>
                   <View
                     style={styles.drawerAvatarHead}
                   />
+
                   <View
                     style={styles.drawerAvatarBody}
                   />
@@ -406,46 +581,39 @@ export default function MenuScreen() {
 
                 <View style={styles.drawerUserInfo}>
                   <ThemedText
-                    style={styles.drawerWelcome}
-                  >
-                    Bienvenido
-                  </ThemedText>
-
-                  <ThemedText
                     style={styles.drawerName}
                   >
                     {user.first_name} {user.last_name}
+                  </ThemedText>
+
+                  <ThemedText
+                    style={styles.drawerRole}
+                  >
+                    {previewRole}
                   </ThemedText>
                 </View>
               </View>
 
               <View style={styles.drawerDivider} />
 
-              {/* ROL */}
-              <View style={styles.drawerField}>
-                <ThemedText
-                  style={styles.drawerFieldLabel}
-                >
-                  Rol
-                </ThemedText>
+              {/* CUENTA */}
 
-                <ThemedText
-                  style={styles.drawerFieldValue}
-                >
-                  {user.role}
-                </ThemedText>
-              </View>
+              <ThemedText
+                style={styles.drawerSectionLabel}
+              >
+                CUENTA
+              </ThemedText>
 
-              {/* CORREO */}
-              <View style={styles.drawerField}>
+              <View style={styles.drawerAccountInfo}>
                 <ThemedText
-                  style={styles.drawerFieldLabel}
+                  style={styles.drawerInfoLabel}
                 >
                   Correo
                 </ThemedText>
 
                 <ThemedText
-                  style={styles.drawerFieldValue}
+                  style={styles.drawerEmail}
+                  numberOfLines={2}
                 >
                   {user.email}
                 </ThemedText>
@@ -454,9 +622,11 @@ export default function MenuScreen() {
               <View style={styles.drawerSpacer} />
 
               {/* CERRAR SESIÓN */}
+
               <Pressable
                 style={({ pressed }) => [
                   styles.signOutButton,
+
                   pressed &&
                     styles.signOutPressed,
                 ]}
@@ -481,6 +651,12 @@ export default function MenuScreen() {
     </ThemedView>
   );
 }
+
+/*
+ * ============================================
+ * ESTILOS
+ * ============================================
+ */
 
 const styles = StyleSheet.create({
   /*
@@ -508,17 +684,16 @@ const styles = StyleSheet.create({
 
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
 
     paddingHorizontal: 18,
 
-    borderBottomWidth: 2,
-
     shadowColor: '#000000',
+
     shadowOffset: {
       width: 0,
       height: 3,
     },
+
     shadowOpacity: 0.14,
     shadowRadius: 5,
 
@@ -528,6 +703,7 @@ const styles = StyleSheet.create({
   topBarLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+
     gap: 12,
   },
 
@@ -538,12 +714,15 @@ const styles = StyleSheet.create({
   hamburger: {
     width: 25,
     height: 20,
+
     justifyContent: 'space-between',
   },
 
   hamburgerLine: {
     height: 2,
+
     borderRadius: 2,
+
     backgroundColor: GOLD,
   },
 
@@ -578,61 +757,14 @@ const styles = StyleSheet.create({
   },
 
   /*
-   * PERFIL
-   */
-
-  profileButton: {
-    width: 40,
-    height: 40,
-
-    borderRadius: 20,
-
-    borderWidth: 1.5,
-    borderColor: GOLD,
-
-    backgroundColor: '#181713',
-
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  profileHead: {
-    width: 10,
-    height: 10,
-
-    borderRadius: 5,
-
-    borderWidth: 2,
-    borderColor: GOLD,
-
-    marginBottom: 2,
-  },
-
-  profileBody: {
-    width: 17,
-    height: 9,
-
-    borderTopLeftRadius: 9,
-    borderTopRightRadius: 9,
-
-    borderWidth: 2,
-    borderBottomWidth: 0,
-
-    borderColor: GOLD,
-  },
-
-  /*
    * CONTENIDO
    */
 
   content: {
     flex: 1,
+
     paddingHorizontal: 24,
   },
-
-  /*
-   * AQUÍ ESTÁ EL CAMBIO IMPORTANTE
-   */
 
   operationsWrapper: {
     flex: 1,
@@ -642,7 +774,7 @@ const styles = StyleSheet.create({
   },
 
   /*
-   * ENCABEZADO
+   * HEADER
    */
 
   operationsHeader: {
@@ -669,13 +801,35 @@ const styles = StyleSheet.create({
   },
 
   /*
-   * LISTA
+   * ADMIN
    */
 
   operationsList: {
-     width: '100%',
+    width: '100%',
+
     height: 430,
-  justifyContent: 'space-between',
+
+    justifyContent: 'space-between',
+  },
+
+  /*
+   * EMPLEADO
+   */
+
+  employeeOperationsList: {
+    height: 220,
+
+    justifyContent: 'space-between',
+  },
+
+  /*
+   * INSTALADOR
+   */
+
+  installerOperationsList: {
+    height: 100,
+
+    justifyContent: 'flex-start',
   },
 
   /*
@@ -763,6 +917,7 @@ const styles = StyleSheet.create({
 
   transferIcon: {
     width: 26,
+
     gap: 1,
   },
 
@@ -778,6 +933,7 @@ const styles = StyleSheet.create({
 
     flexDirection: 'row',
     alignItems: 'center',
+
     justifyContent: 'flex-end',
   },
 
@@ -800,17 +956,20 @@ const styles = StyleSheet.create({
   },
 
   /*
-   * INVENTARIO
+   * INVENTARIOS
    */
 
   inventoryIcon: {
     width: 27,
+
     gap: 4,
   },
 
   inventoryRow: {
     flexDirection: 'row',
+
     alignItems: 'center',
+
     gap: 4,
   },
 
@@ -925,7 +1084,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
 
     backgroundColor:
-      'rgba(0, 0, 0, 0.55)',
+      'rgba(0, 0, 0, 0.35)',
   },
 
   drawer: {
@@ -941,36 +1100,85 @@ const styles = StyleSheet.create({
   drawerInner: {
     flex: 1,
 
-    backgroundColor: BLACK,
+    backgroundColor:
+      DRAWER_BACKGROUND,
 
     borderRightWidth: 1,
-    borderRightColor: GOLD,
+    borderRightColor:
+      'rgba(155, 116, 23, 0.20)',
+
+    shadowColor: '#000000',
+
+    shadowOffset: {
+      width: 4,
+      height: 0,
+    },
+
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+
+    elevation: 8,
   },
 
   drawerContent: {
     flex: 1,
-    padding: 20,
+
+    paddingHorizontal: 22,
+    paddingTop: 22,
+    paddingBottom: 18,
   },
+
+  /*
+   * BRANDING DRAWER
+   */
+
+  drawerBrand: {
+    marginBottom: 28,
+  },
+
+  drawerBrandMain: {
+    color: '#171717',
+
+    fontSize: 21,
+    lineHeight: 22,
+
+    fontWeight: '800',
+    letterSpacing: 1.2,
+  },
+
+  drawerBrandSub: {
+    color: GOLD_DARK,
+
+    fontSize: 8,
+    lineHeight: 10,
+
+    fontWeight: '700',
+    letterSpacing: 2.7,
+
+    marginTop: 2,
+  },
+
+  /*
+   * PERFIL DRAWER
+   */
 
   drawerProfile: {
     flexDirection: 'row',
     alignItems: 'center',
 
-    gap: 12,
-
-    marginBottom: 20,
+    paddingBottom: 20,
   },
 
   drawerAvatar: {
-    width: 50,
-    height: 50,
+    width: 52,
+    height: 52,
 
-    borderRadius: 25,
+    borderRadius: 26,
 
     borderWidth: 1.5,
-    borderColor: GOLD,
+    borderColor: '#B68A1F',
 
-    backgroundColor: '#171717',
+    backgroundColor: '#EEE6D3',
 
     alignItems: 'center',
     justifyContent: 'center',
@@ -983,7 +1191,7 @@ const styles = StyleSheet.create({
     borderRadius: 7,
 
     borderWidth: 2,
-    borderColor: GOLD,
+    borderColor: GOLD_DARK,
 
     marginBottom: 3,
   },
@@ -998,56 +1206,86 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderBottomWidth: 0,
 
-    borderColor: GOLD,
+    borderColor: GOLD_DARK,
   },
 
   drawerUserInfo: {
     flex: 1,
-  },
 
-  drawerWelcome: {
-    color: '#AAAAAA',
-
-    fontSize: 12,
-    lineHeight: 16,
+    marginLeft: 14,
   },
 
   drawerName: {
-    color: '#FFFFFF',
+    color: '#171717',
 
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 22,
 
     fontWeight: '700',
   },
+
+  drawerRole: {
+    color: '#8A6818',
+
+    fontSize: 12,
+    lineHeight: 17,
+
+    fontWeight: '700',
+
+    marginTop: 3,
+  },
+
+  /*
+   * DIVISOR
+   */
 
   drawerDivider: {
     height: 1,
 
     backgroundColor:
-      'rgba(212, 183, 102, 0.35)',
+      'rgba(155, 116, 23, 0.18)',
 
-    marginBottom: 8,
+    marginBottom: 20,
   },
 
-  drawerField: {
-    paddingVertical: 12,
+  /*
+   * CUENTA
+   */
+
+  drawerSectionLabel: {
+    color: '#777168',
+
+    fontSize: 10,
+    lineHeight: 14,
+
+    fontWeight: '700',
+    letterSpacing: 1.8,
+
+    marginBottom: 12,
   },
 
-  drawerFieldLabel: {
-    color: GOLD,
+  drawerAccountInfo: {
+    paddingVertical: 4,
+  },
+
+  drawerInfoLabel: {
+    color: '#8A6818',
+
+    fontSize: 11,
+    lineHeight: 15,
+
+    fontWeight: '700',
+
+    marginBottom: 4,
+  },
+
+  drawerEmail: {
+    color: '#4F4B44',
 
     fontSize: 12,
-    lineHeight: 16,
-  },
+    lineHeight: 17,
 
-  drawerFieldValue: {
-    color: '#FFFFFF',
-
-    fontSize: 14,
-    lineHeight: 20,
-
-    marginTop: 2,
+    flexShrink: 1,
   },
 
   drawerSpacer: {
@@ -1059,9 +1297,9 @@ const styles = StyleSheet.create({
    */
 
   signOutButton: {
-    height: 46,
+    height: 48,
 
-    borderRadius: 10,
+    borderRadius: 8,
 
     backgroundColor: '#C96B6B',
 
@@ -1069,7 +1307,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
 
+    marginHorizontal: 2,
+    marginBottom: 4,
+
     gap: 8,
+
+    shadowColor: '#000000',
+
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+
+    elevation: 2,
   },
 
   signOutPressed: {
