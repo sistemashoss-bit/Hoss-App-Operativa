@@ -14,21 +14,24 @@ import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/lib/auth';
 
 const GOLD = '#D4B766';
-const BLACK = '#111111';
-const BLACK_SOFT = '#1B1B1B';
+const BLACK = '#0D0D0D';
 
-const BACKGROUND = '#F7F7F7';
-
-const TEXT_PRIMARY = '#1A1A1A';
+const BACKGROUND = '#F1EEE8';
 
 const DANGER = '#D77A7A';
+const TEXT_MUTED = '#98938A';
+
 const DRAWER_WIDTH = 300;
 
 type MenuOption = {
-  key: string;
+  key:
+    | 'recepciones'
+    | 'transferencias'
+    | 'inventarios'
+    | 'instalaciones';
+
   label: string;
-  subtitle?: string;
-  icon: string;
+  subtitle: string;
   status?: 'danger' | 'active' | 'neutral';
 };
 
@@ -37,28 +40,24 @@ const OPTIONS: MenuOption[] = [
     key: 'recepciones',
     label: 'Recepciones',
     subtitle: '3 pendientes',
-    icon: '□',
     status: 'danger',
   },
   {
     key: 'transferencias',
     label: 'Transferencias',
     subtitle: '5 activas',
-    icon: '⇄',
     status: 'active',
   },
   {
     key: 'inventarios',
     label: 'Inventarios',
     subtitle: 'Consultar inventario',
-    icon: '≡',
     status: 'neutral',
   },
   {
     key: 'instalaciones',
     label: 'Instalaciones',
     subtitle: '4 pendientes',
-    icon: '◇',
     status: 'danger',
   },
 ];
@@ -70,11 +69,11 @@ export default function MenuScreen() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const slideAnim = useRef(
-    new Animated.Value(-DRAWER_WIDTH)
+    new Animated.Value(-DRAWER_WIDTH),
   ).current;
 
   const fadeAnim = useRef(
-    new Animated.Value(0)
+    new Animated.Value(0),
   ).current;
 
   if (!user) {
@@ -90,6 +89,7 @@ export default function MenuScreen() {
         duration: 220,
         useNativeDriver: true,
       }),
+
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 220,
@@ -105,6 +105,7 @@ export default function MenuScreen() {
         duration: 200,
         useNativeDriver: true,
       }),
+
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 200,
@@ -132,13 +133,94 @@ export default function MenuScreen() {
     // router.push(`/${option.key}`);
   }
 
+  function getSubtitleColor(
+    status?: MenuOption['status'],
+  ) {
+    switch (status) {
+      case 'danger':
+        return DANGER;
+
+      case 'active':
+        return '#B68A1F';
+
+      default:
+        return TEXT_MUTED;
+    }
+  }
+
+  function renderOperationIcon(
+    key: MenuOption['key'],
+  ) {
+    switch (key) {
+      case 'recepciones':
+        return (
+          <View style={styles.boxIcon}>
+            <View style={styles.boxTop} />
+            <View style={styles.boxBody} />
+          </View>
+        );
+
+      case 'transferencias':
+        return (
+          <View style={styles.transferIcon}>
+            <View style={styles.transferRow}>
+              <View style={styles.transferLine} />
+
+              <ThemedText style={styles.transferArrow}>
+                ›
+              </ThemedText>
+            </View>
+
+            <View style={styles.transferRowReverse}>
+              <ThemedText style={styles.transferArrow}>
+                ‹
+              </ThemedText>
+
+              <View style={styles.transferLine} />
+            </View>
+          </View>
+        );
+
+      case 'inventarios':
+        return (
+          <View style={styles.inventoryIcon}>
+            <View style={styles.inventoryRow}>
+              <View style={styles.inventoryDot} />
+              <View style={styles.inventoryLine} />
+            </View>
+
+            <View style={styles.inventoryRow}>
+              <View style={styles.inventoryDot} />
+              <View style={styles.inventoryLine} />
+            </View>
+
+            <View style={styles.inventoryRow}>
+              <View style={styles.inventoryDot} />
+              <View style={styles.inventoryLine} />
+            </View>
+          </View>
+        );
+
+      case 'instalaciones':
+        return (
+          <View style={styles.toolIcon}>
+            <View style={styles.toolHead} />
+            <View style={styles.toolHandle} />
+          </View>
+        );
+
+      default:
+        return null;
+    }
+  }
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView
         style={styles.safeArea}
         edges={['top', 'left', 'right']}
       >
-        {/* HEADER */}
+        {/* NAVBAR */}
         <View style={styles.topBar}>
           <View style={styles.topBarLeft}>
             <Pressable
@@ -148,14 +230,37 @@ export default function MenuScreen() {
               accessibilityRole="button"
               accessibilityLabel="Abrir menú"
             >
-              <View style={styles.hamburgerLine} />
-              <View style={styles.hamburgerLine} />
-              <View style={styles.hamburgerLine} />
+              <View
+                style={[
+                  styles.hamburgerLine,
+                  { width: 24 },
+                ]}
+              />
+
+              <View
+                style={[
+                  styles.hamburgerLine,
+                  { width: 18 },
+                ]}
+              />
+
+              <View
+                style={[
+                  styles.hamburgerLine,
+                  { width: 24 },
+                ]}
+              />
             </Pressable>
 
-            <ThemedText style={styles.headerTitle}>
-              HOSS Mobile
-            </ThemedText>
+            <View style={styles.brandContainer}>
+              <ThemedText style={styles.brandMain}>
+                HOSS
+              </ThemedText>
+
+              <ThemedText style={styles.brandSub}>
+                MOBILE
+              </ThemedText>
+            </View>
           </View>
 
           <Pressable
@@ -171,70 +276,92 @@ export default function MenuScreen() {
 
         {/* CONTENIDO */}
         <View style={styles.content}>
-          <View style={styles.operationsContainer}>
-            <ThemedText style={styles.sectionTitle}>
-              OPERACIONES
-            </ThemedText>
+          <View style={styles.operationsWrapper}>
+            {/* TÍTULO */}
+            <View style={styles.operationsHeader}>
+              <ThemedText style={styles.operationsTitle}>
+                OPERACIONES
+              </ThemedText>
 
-            <View style={styles.menuList}>
-              {OPTIONS.map((option) => (
-                <Pressable
-                  key={option.key}
-                  onPress={() => handleSelect(option)}
-                  style={({ pressed }) => [
-                    styles.menuButton,
-                    pressed && styles.menuButtonPressed,
-                  ]}
-                >
-                  {/* ICONO */}
-                  <View style={styles.menuButtonIcon}>
-                    <ThemedText style={styles.menuIcon}>
-                      {option.icon}
-                    </ThemedText>
-                  </View>
+              <ThemedText
+                style={styles.operationsDescription}
+              >
+                Selecciona un módulo
+              </ThemedText>
+            </View>
 
-                  {/* TEXTO */}
-                  <View style={styles.menuButtonContent}>
-                    <ThemedText style={styles.menuButtonLabel}>
-                      {option.label}
-                    </ThemedText>
+            {/* MÓDULOS */}
+            <View style={styles.operationsList}>
+              {OPTIONS.map((option, index) => (
+                <View key={option.key}>
+                  <Pressable
+                    onPress={() => handleSelect(option)}
+                    style={({ pressed }) => [
+                      styles.operationRow,
+                      pressed &&
+                        styles.operationRowPressed,
+                    ]}
+                  >
+                    {/* ICONO */}
+                    <View style={styles.operationIcon}>
+                      {renderOperationIcon(option.key)}
+                    </View>
 
-                    {option.subtitle && (
+                    {/* TEXTO */}
+                    <View style={styles.operationContent}>
+                      <ThemedText
+                        style={styles.operationLabel}
+                      >
+                        {option.label}
+                      </ThemedText>
+
                       <ThemedText
                         style={[
-                          styles.menuButtonSubtitle,
-
-                          option.status === 'danger' &&
-                            styles.subtitleDanger,
-
-                          option.status === 'active' &&
-                            styles.subtitleActive,
+                          styles.operationSubtitle,
+                          {
+                            color: getSubtitleColor(
+                              option.status,
+                            ),
+                          },
                         ]}
                       >
                         {option.subtitle}
                       </ThemedText>
-                    )}
-                  </View>
+                    </View>
 
-                  {/* FLECHA */}
-                  <ThemedText style={styles.menuChevron}>
-                    ›
-                  </ThemedText>
-                </Pressable>
+                    {/* FLECHA */}
+                    <View
+                      style={
+                        styles.operationArrowContainer
+                      }
+                    >
+                      <ThemedText
+                        style={styles.operationArrow}
+                      >
+                        ›
+                      </ThemedText>
+                    </View>
+                  </Pressable>
+
+                  {index < OPTIONS.length - 1 && (
+                    <View
+                      style={styles.operationDivider}
+                    />
+                  )}
+                </View>
               ))}
             </View>
           </View>
         </View>
       </SafeAreaView>
 
-      {/* DRAWER LATERAL */}
+      {/* DRAWER */}
       <Modal
         visible={drawerOpen}
         transparent
         animationType="none"
         onRequestClose={closeDrawer}
       >
-        {/* Fondo oscuro */}
         <Animated.View
           style={[
             styles.backdrop,
@@ -249,7 +376,6 @@ export default function MenuScreen() {
           />
         </Animated.View>
 
-        {/* Drawer */}
         <Animated.View
           style={[
             styles.drawer,
@@ -267,63 +393,84 @@ export default function MenuScreen() {
               edges={['top', 'left', 'bottom']}
               style={styles.drawerContent}
             >
-              {/* Usuario */}
+              {/* USUARIO */}
               <View style={styles.drawerProfile}>
                 <View style={styles.drawerAvatar}>
-                  <View style={styles.drawerAvatarHead} />
-                  <View style={styles.drawerAvatarBody} />
+                  <View
+                    style={styles.drawerAvatarHead}
+                  />
+                  <View
+                    style={styles.drawerAvatarBody}
+                  />
                 </View>
 
                 <View style={styles.drawerUserInfo}>
-                  <ThemedText style={styles.drawerWelcome}>
+                  <ThemedText
+                    style={styles.drawerWelcome}
+                  >
                     Bienvenido
                   </ThemedText>
 
-                  <ThemedText style={styles.drawerName}>
+                  <ThemedText
+                    style={styles.drawerName}
+                  >
                     {user.first_name} {user.last_name}
                   </ThemedText>
                 </View>
               </View>
 
-              <View style={styles.divider} />
+              <View style={styles.drawerDivider} />
 
-              {/* Rol */}
+              {/* ROL */}
               <View style={styles.drawerField}>
-                <ThemedText style={styles.drawerFieldLabel}>
+                <ThemedText
+                  style={styles.drawerFieldLabel}
+                >
                   Rol
                 </ThemedText>
 
-                <ThemedText style={styles.drawerFieldValue}>
+                <ThemedText
+                  style={styles.drawerFieldValue}
+                >
                   {user.role}
                 </ThemedText>
               </View>
 
-              {/* Correo */}
+              {/* CORREO */}
               <View style={styles.drawerField}>
-                <ThemedText style={styles.drawerFieldLabel}>
+                <ThemedText
+                  style={styles.drawerFieldLabel}
+                >
                   Correo
                 </ThemedText>
 
-                <ThemedText style={styles.drawerFieldValue}>
+                <ThemedText
+                  style={styles.drawerFieldValue}
+                >
                   {user.email}
                 </ThemedText>
               </View>
 
               <View style={styles.drawerSpacer} />
 
-              {/* Cerrar sesión */}
+              {/* CERRAR SESIÓN */}
               <Pressable
                 style={({ pressed }) => [
                   styles.signOutButton,
-                  pressed && styles.signOutPressed,
+                  pressed &&
+                    styles.signOutPressed,
                 ]}
                 onPress={handleSignOut}
               >
-                <ThemedText style={styles.signOutIcon}>
+                <ThemedText
+                  style={styles.signOutIcon}
+                >
                   ↪
                 </ThemedText>
 
-                <ThemedText style={styles.signOutText}>
+                <ThemedText
+                  style={styles.signOutText}
+                >
                   Cerrar sesión
                 </ThemedText>
               </Pressable>
@@ -336,7 +483,9 @@ export default function MenuScreen() {
 }
 
 const styles = StyleSheet.create({
-  /* GENERAL */
+  /*
+   * GENERAL
+   */
 
   container: {
     flex: 1,
@@ -348,10 +497,13 @@ const styles = StyleSheet.create({
     backgroundColor: BACKGROUND,
   },
 
-  /* HEADER */
+  /*
+   * NAVBAR
+   */
 
   topBar: {
-    height: 64,
+    height: 72,
+
     backgroundColor: BLACK,
 
     flexDirection: 'row',
@@ -361,18 +513,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
 
     borderBottomWidth: 2,
-    borderBottomColor: GOLD,
+
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.14,
+    shadowRadius: 5,
+
+    elevation: 5,
   },
 
   topBarLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
+
+  /*
+   * HAMBURGUESA
+   */
 
   hamburger: {
     width: 25,
-    height: 18,
+    height: 20,
     justifyContent: 'space-between',
   },
 
@@ -382,34 +547,61 @@ const styles = StyleSheet.create({
     backgroundColor: GOLD,
   },
 
-  headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    lineHeight: 22,
-    fontWeight: '700',
+  /*
+   * BRANDING
+   */
+
+  brandContainer: {
+    justifyContent: 'center',
   },
 
-  /* PERFIL */
+  brandMain: {
+    color: '#FFFFFF',
+
+    fontSize: 19,
+    lineHeight: 20,
+
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+
+  brandSub: {
+    color: GOLD,
+
+    fontSize: 8,
+    lineHeight: 10,
+
+    fontWeight: '700',
+    letterSpacing: 2.5,
+
+    marginTop: 2,
+  },
+
+  /*
+   * PERFIL
+   */
 
   profileButton: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
 
-    borderRadius: 18,
+    borderRadius: 20,
+
     borderWidth: 1.5,
     borderColor: GOLD,
 
-    backgroundColor: BLACK_SOFT,
+    backgroundColor: '#181713',
 
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   profileHead: {
-    width: 9,
-    height: 9,
+    width: 10,
+    height: 10,
 
     borderRadius: 5,
+
     borderWidth: 2,
     borderColor: GOLD,
 
@@ -417,121 +609,279 @@ const styles = StyleSheet.create({
   },
 
   profileBody: {
-    width: 15,
-    height: 8,
+    width: 17,
+    height: 9,
 
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    borderTopLeftRadius: 9,
+    borderTopRightRadius: 9,
 
     borderWidth: 2,
     borderBottomWidth: 0,
+
     borderColor: GOLD,
   },
 
-  /* CONTENIDO */
+  /*
+   * CONTENIDO
+   */
 
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
 
-  operationsContainer: {
+  /*
+   * AQUÍ ESTÁ EL CAMBIO IMPORTANTE
+   */
+
+  operationsWrapper: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-    paddingBottom: 10,
+
+    paddingTop: 36,
+    paddingBottom: 40,
   },
 
-  sectionTitle: {
-    color: TEXT_PRIMARY,
-    fontSize: 16,
-      lineHeight: 22,
-      fontWeight: '700',
-      letterSpacing: 1.4,
-      textAlign: 'center',
-      marginBottom: 28,
+  /*
+   * ENCABEZADO
+   */
+
+  operationsHeader: {
+    marginBottom: 24,
   },
 
-  /* MENÚ */
+  operationsTitle: {
+    color: '#171717',
 
-  menuList: {
-    width: '100%',
-    gap: 14,
+    fontSize: 14,
+    lineHeight: 19,
+
+    fontWeight: '800',
+    letterSpacing: 2,
   },
 
-  menuButton: {
-    width: '100%',
-    minHeight: 78,
+  operationsDescription: {
+    color: '#8A857D',
 
-    backgroundColor: '#171717',
+    fontSize: 12,
+    lineHeight: 17,
 
-    borderRadius: 15,
+    marginTop: 5,
+  },
 
-    borderWidth: 1,
-    borderColor: 'rgba(212, 183, 102, 0.30)',
+  /*
+   * LISTA
+   */
+
+  operationsList: {
+     width: '100%',
+    height: 430,
+  justifyContent: 'space-between',
+  },
+
+  /*
+   * FILAS
+   */
+
+  operationRow: {
+    minHeight: 82,
 
     flexDirection: 'row',
     alignItems: 'center',
 
-    paddingHorizontal: 18,
-    paddingVertical: 13,
+    paddingHorizontal: 4,
+    paddingVertical: 12,
 
-    shadowColor: '#000000',
-
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-
-    elevation: 3,
+    backgroundColor: 'transparent',
   },
 
-  menuButtonPressed: {
-    opacity: 0.78,
-
-    transform: [
-      {
-        scale: 0.985,
-      },
-    ],
+  operationRowPressed: {
+    opacity: 0.55,
   },
 
-  /* ICONO DEL MENÚ */
+  operationDivider: {
+    height: 1,
 
-  menuButtonIcon: {
-    width: 46,
-    height: 46,
+    marginLeft: 48,
+    marginRight: 2,
 
-    borderRadius: 13,
+    backgroundColor:
+      'rgba(155, 116, 23, 0.16)',
+  },
 
-    backgroundColor: 'rgba(212, 183, 102, 0.12)',
+  /*
+   * ICONOS
+   */
+
+  operationIcon: {
+    width: 34,
+    height: 34,
 
     alignItems: 'center',
     justifyContent: 'center',
 
-    marginRight: 15,
+    marginRight: 14,
   },
 
-  menuIcon: {
+  /*
+   * RECEPCIONES
+   */
+
+  boxIcon: {
+    width: 25,
+    height: 24,
+
+    alignItems: 'center',
+  },
+
+  boxTop: {
+    width: 20,
+    height: 7,
+
+    borderWidth: 2,
+    borderColor: GOLD,
+
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
+
+  boxBody: {
+    width: 22,
+    height: 16,
+
+    borderWidth: 2,
+    borderTopWidth: 0,
+
+    borderColor: GOLD,
+
+    borderBottomLeftRadius: 2,
+    borderBottomRightRadius: 2,
+  },
+
+  /*
+   * TRANSFERENCIAS
+   */
+
+  transferIcon: {
+    width: 26,
+    gap: 1,
+  },
+
+  transferRow: {
+    height: 10,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  transferRowReverse: {
+    height: 10,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+
+  transferLine: {
+    width: 17,
+    height: 2,
+
+    borderRadius: 2,
+
+    backgroundColor: GOLD,
+  },
+
+  transferArrow: {
     color: GOLD,
 
-    fontSize: 24,
-    lineHeight: 27,
+    fontSize: 18,
+    lineHeight: 18,
 
     fontWeight: '700',
   },
 
-  /* TEXTO DEL MENÚ */
+  /*
+   * INVENTARIO
+   */
 
-  menuButtonContent: {
+  inventoryIcon: {
+    width: 27,
+    gap: 4,
+  },
+
+  inventoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+
+  inventoryDot: {
+    width: 4,
+    height: 4,
+
+    borderRadius: 1,
+
+    backgroundColor: GOLD,
+  },
+
+  inventoryLine: {
+    flex: 1,
+
+    height: 2,
+
+    borderRadius: 2,
+
+    backgroundColor: GOLD,
+  },
+
+  /*
+   * INSTALACIONES
+   */
+
+  toolIcon: {
+    width: 25,
+    height: 27,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    transform: [
+      {
+        rotate: '-45deg',
+      },
+    ],
+  },
+
+  toolHead: {
+    width: 13,
+    height: 13,
+
+    borderWidth: 2,
+    borderColor: GOLD,
+
+    borderRadius: 3,
+  },
+
+  toolHandle: {
+    width: 4,
+    height: 14,
+
+    marginTop: -1,
+
+    borderRadius: 2,
+
+    backgroundColor: GOLD,
+  },
+
+  /*
+   * TEXTO
+   */
+
+  operationContent: {
     flex: 1,
   },
 
-  menuButtonLabel: {
-    color: '#FFFFFF',
+  operationLabel: {
+    color: '#171717',
 
     fontSize: 16,
     lineHeight: 21,
@@ -539,38 +889,43 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  menuButtonSubtitle: {
-    color: '#A9A9A9',
-
+  operationSubtitle: {
     fontSize: 12,
     lineHeight: 17,
 
     marginTop: 3,
   },
 
-  subtitleDanger: {
-    color: DANGER,
+  /*
+   * FLECHA
+   */
+
+  operationArrowContainer: {
+    width: 32,
+    height: 32,
+
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  subtitleActive: {
-    color: GOLD,
+  operationArrow: {
+    color: '#B68A1F',
+
+    fontSize: 25,
+    lineHeight: 27,
+
+    fontWeight: '400',
   },
 
-  menuChevron: {
-    color: GOLD,
-
-    fontSize: 28,
-    lineHeight: 30,
-
-    marginLeft: 10,
-  },
-
-  /* DRAWER */
+  /*
+   * DRAWER
+   */
 
   backdrop: {
     ...StyleSheet.absoluteFillObject,
 
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor:
+      'rgba(0, 0, 0, 0.55)',
   },
 
   drawer: {
@@ -594,11 +949,8 @@ const styles = StyleSheet.create({
 
   drawerContent: {
     flex: 1,
-
     padding: 20,
   },
-
-  /* PERFIL DEL DRAWER */
 
   drawerProfile: {
     flexDirection: 'row',
@@ -618,7 +970,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: GOLD,
 
-    backgroundColor: BLACK_SOFT,
+    backgroundColor: '#171717',
 
     alignItems: 'center',
     justifyContent: 'center',
@@ -645,6 +997,7 @@ const styles = StyleSheet.create({
 
     borderWidth: 2,
     borderBottomWidth: 0,
+
     borderColor: GOLD,
   },
 
@@ -668,17 +1021,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  /* SEPARADOR */
-
-  divider: {
+  drawerDivider: {
     height: 1,
 
-    backgroundColor: 'rgba(212, 183, 102, 0.35)',
+    backgroundColor:
+      'rgba(212, 183, 102, 0.35)',
 
     marginBottom: 8,
   },
-
-  /* CAMPOS DEL DRAWER */
 
   drawerField: {
     paddingVertical: 12,
@@ -704,7 +1054,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  /* CERRAR SESIÓN */
+  /*
+   * CERRAR SESIÓN
+   */
 
   signOutButton: {
     height: 46,
