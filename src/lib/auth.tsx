@@ -5,23 +5,57 @@ import { Platform } from 'react-native';
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const SESSION_KEY = 'hoss.session';
 
+export type Actor = 'user' | 'installer' | 'customer';
+
 export type AuthUser = {
-  id: number;
+  // INT para staff (user), UUID para accounts (installer/customer).
+  id: string | number;
+  actor: Actor;
   first_name: string;
   last_name: string;
   email: string;
-  role: string;
+  role: string | null;
   token: string;
+  installer_id?: number | null;
+  customer_id?: number | null;
 };
 
 type AuthContextValue = {
   user: AuthUser | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<AuthUser>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+// Convierte la respuesta { token, actor, profile } (de /auth/login y de
+// /auth/invitations/accept) en el AuthUser que guarda la app.
+function mapSession(data: any): AuthUser {
+  const actor = data.actor as Actor;
+  const profile = data.profile ?? {};
+
+  // Staff trae first_name/last_name propios. El installer los toma de su
+  // Installer ligado (el account no tiene nombre propio).
+  let first_name = profile.first_name ?? '';
+  let last_name = profile.last_name ?? '';
+  if (actor === 'installer' && profile.installer) {
+    first_name = profile.installer.first_name ?? first_name;
+    last_name = profile.installer.last_name ?? last_name;
+  }
+
+  return {
+    id: profile.id,
+    actor,
+    first_name,
+    last_name,
+    email: profile.email,
+    role: profile.role ?? null,
+    token: data.token,
+    installer_id: profile.installer_id ?? null,
+    customer_id: profile.customer_id ?? null,
+  };
+}
 
 // SecureStore no está disponible en web: usamos localStorage como respaldo.
 async function saveSession(value: string) {
@@ -62,8 +96,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
+  async function commitSession(data: any) {
+    const authUser = mapSession(data);
+    setUser(authUser);
+    await saveSession(JSON.stringify(authUser));
+    return authUser;
+  }
+
   async function signIn(email: string, password: string) {
-    const response = await fetch(`${API_URL}/users/login`, {
+    // Login único multi-actor: el server resuelve staff vs installer/customer
+    // por el email y devuelve { token, actor, profile }.
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -71,21 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const data = await response.json();
 
-    if (!response.ok || !data?.user) {
-      throw new Error(data?.message ?? 'Credenciales inválidas');
+    if (!response.ok || !data?.token) {
+      throw new Error(data?.error ?? data?.message ?? 'Credenciales inválidas');
     }
 
-    const authUser: AuthUser = {
-      id: data.user.id,
-      first_name: data.user.first_name,
-      last_name: data.user.last_name,
-      email: data.user.email,
-      role: data.user.UserRole?.Role?.name ?? 'Sin rol',
-      token: data.token,
-    };
-
-    setUser(authUser);
-    await saveSession(JSON.stringify(authUser));
+    return commitSession(data);
   }
 
   async function signOut() {

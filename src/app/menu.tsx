@@ -31,14 +31,17 @@ const DRAWER_WIDTH = 300;
 
 /*
  * ============================================
- * PREVIEW TEMPORAL
+ * VARIANTE DE MENÚ
  * ============================================
  *
- * Cambia SOLO esta línea para visualizar:
+ * La variante se deriva del `actor` del login (ver más abajo, dentro del
+ * componente). `PREVIEW_MENU` sólo se usa como fallback para staff mientras
+ * no exista ramificación por rol (admin vs empleado se decidirá por RBAC).
+ *
+ * Cambia esta línea para previsualizar el menú de staff:
  *
  * 'admin'
  * 'empleado'
- * 'instalador'
  */
 
 type PreviewMenu =
@@ -47,6 +50,16 @@ type PreviewMenu =
   | 'instalador';
 
 const PREVIEW_MENU: PreviewMenu = 'admin';
+
+function optionsFor(variant: PreviewMenu): MenuOption[] {
+  if (variant === 'empleado') {
+    return EMPLOYEE_OPTIONS;
+  }
+  if (variant === 'instalador') {
+    return INSTALLER_OPTIONS;
+  }
+  return ADMIN_OPTIONS;
+}
 
 /*
  * TIPOS
@@ -135,17 +148,6 @@ const INSTALLER_OPTIONS: MenuOption[] = [
 ];
 
 /*
- * OPCIONES DEL PREVIEW
- */
-
-const OPTIONS =
-  PREVIEW_MENU === 'empleado'
-    ? EMPLOYEE_OPTIONS
-    : PREVIEW_MENU === 'instalador'
-      ? INSTALLER_OPTIONS
-      : ADMIN_OPTIONS;
-
-/*
  * ============================================
  * COMPONENTE
  * ============================================
@@ -175,13 +177,21 @@ export default function MenuScreen() {
   }
 
   /*
-   * ROL VISUAL TEMPORAL
+   * VARIANTE SEGÚN ACTOR
+   *
+   * installer → menú de instalaciones. staff (user) → menú de operaciones
+   * (por ahora el fallback PREVIEW_MENU; a futuro se afina admin/empleado por rol).
    */
 
+  const menuVariant: PreviewMenu =
+    user.actor === 'installer' ? 'instalador' : PREVIEW_MENU;
+
+  const options = optionsFor(menuVariant);
+
   const previewRole =
-    PREVIEW_MENU === 'empleado'
+    menuVariant === 'empleado'
       ? 'Empleado de sucursal'
-      : PREVIEW_MENU === 'instalador'
+      : menuVariant === 'instalador'
         ? 'Instalador'
         : user.role;
 
@@ -237,6 +247,11 @@ export default function MenuScreen() {
     await signOut();
 
     router.replace('/');
+  }
+
+  function handleChangePassword() {
+    closeDrawer();
+    router.push('/change-password');
   }
 
   /*
@@ -443,14 +458,14 @@ export default function MenuScreen() {
               style={[
                 styles.operationsList,
 
-                PREVIEW_MENU === 'empleado' &&
+                menuVariant === 'empleado' &&
                   styles.employeeOperationsList,
 
-                PREVIEW_MENU === 'instalador' &&
+                menuVariant === 'instalador' &&
                   styles.installerOperationsList,
               ]}
             >
-              {OPTIONS.map((option, index) => (
+              {options.map((option, index) => (
                 <View key={option.key}>
                   <Pressable
                     onPress={() =>
@@ -508,7 +523,7 @@ export default function MenuScreen() {
                     </View>
                   </Pressable>
 
-                  {index < OPTIONS.length - 1 && (
+                  {index < options.length - 1 && (
                     <View
                       style={styles.operationDivider}
                     />
@@ -632,6 +647,20 @@ export default function MenuScreen() {
               </View>
 
               <View style={styles.drawerSpacer} />
+
+              {/* CAMBIAR CONTRASEÑA */}
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.changePwdButton,
+                  pressed && styles.changePwdPressed,
+                ]}
+                onPress={handleChangePassword}
+              >
+                <ThemedText style={styles.changePwdText}>
+                  Cambiar contraseña
+                </ThemedText>
+              </Pressable>
 
               {/* CERRAR SESIÓN */}
 
@@ -1307,6 +1336,35 @@ const styles = StyleSheet.create({
   /*
    * CERRAR SESIÓN
    */
+
+  changePwdButton: {
+    height: 46,
+
+    borderRadius: 8,
+
+    backgroundColor: 'transparent',
+
+    borderWidth: 1,
+    borderColor: 'rgba(155, 116, 23, 0.45)',
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    marginHorizontal: 2,
+    marginBottom: 10,
+  },
+
+  changePwdPressed: {
+    opacity: 0.7,
+  },
+
+  changePwdText: {
+    color: '#8A6818',
+
+    fontSize: 14,
+
+    fontWeight: '700',
+  },
 
   signOutButton: {
     height: 48,

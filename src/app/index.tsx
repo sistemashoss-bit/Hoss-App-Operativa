@@ -37,8 +37,12 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // El instalador entra directo a sus citas; el staff al menú de operaciones.
+  const homeFor = (actor: string) =>
+    actor === 'installer' ? '/citas' : '/menu';
+
   if (user) {
-    return <Redirect href="/menu" />;
+    return <Redirect href={homeFor(user.actor)} />;
   }
 
   async function handleLogin() {
@@ -46,9 +50,9 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      await signIn(email.trim(), password);
+      const signedIn = await signIn(email.trim(), password);
 
-      router.replace('/menu');
+      router.replace(homeFor(signedIn.actor));
     } catch (e) {
       setError(
         e instanceof Error

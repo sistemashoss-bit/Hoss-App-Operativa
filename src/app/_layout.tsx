@@ -25,6 +25,9 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="menu" />
+      <Stack.Screen name="change-password" />
+      <Stack.Screen name="citas" />
+      <Stack.Screen name="cita/[id]" />
     </Stack>
   );
 }
