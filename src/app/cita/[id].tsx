@@ -69,12 +69,26 @@ export default function CitaDetailScreen() {
   const hasCoords =
     lat != null && lng != null && !isNaN(lat) && !isNaN(lng);
 
+  // La mayoría de las citas NO trae coordenadas, pero `address` es obligatorio.
+  // Se navega por coords si existen (más preciso) y si no por texto de dirección
+  // (+ CP para desambiguar). Waze y Google Maps aceptan ambos.
+  const addressQuery = [appt.address, appt.postal_code]
+    .filter(Boolean)
+    .join(', ');
+  const canNavigate = hasCoords || addressQuery.length > 0;
+
   function openWaze() {
-    Linking.openURL(`https://waze.com/ul?ll=${lat},${lng}&navigate=yes`);
+    const url = hasCoords
+      ? `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`
+      : `https://waze.com/ul?q=${encodeURIComponent(addressQuery)}&navigate=yes`;
+    Linking.openURL(url);
   }
   function openGoogleMaps() {
+    const destination = hasCoords
+      ? `${lat},${lng}`
+      : encodeURIComponent(addressQuery);
     Linking.openURL(
-      `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+      `https://www.google.com/maps/dir/?api=1&destination=${destination}`,
     );
   }
   function callPhone() {
@@ -119,26 +133,35 @@ export default function CitaDetailScreen() {
               <Row label="Sucursal" value={appt.branch_name} />
             ) : null}
 
-            {hasCoords ? (
-              <View style={styles.navRow}>
-                <Pressable
-                  style={[styles.navBtn, { backgroundColor: WAZE }]}
-                  onPress={openWaze}
-                >
-                  <ThemedText style={styles.navBtnText}>Abrir en Waze</ThemedText>
-                </Pressable>
-                <Pressable
-                  style={[styles.navBtn, { backgroundColor: GMAPS }]}
-                  onPress={openGoogleMaps}
-                >
-                  <ThemedText style={styles.navBtnTextLight}>
-                    Google Maps
+            {canNavigate ? (
+              <>
+                <View style={styles.navRow}>
+                  <Pressable
+                    style={[styles.navBtn, { backgroundColor: WAZE }]}
+                    onPress={openWaze}
+                  >
+                    <ThemedText style={styles.navBtnText}>
+                      Abrir en Waze
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.navBtn, { backgroundColor: GMAPS }]}
+                    onPress={openGoogleMaps}
+                  >
+                    <ThemedText style={styles.navBtnTextLight}>
+                      Google Maps
+                    </ThemedText>
+                  </Pressable>
+                </View>
+                {!hasCoords && (
+                  <ThemedText style={styles.navHint}>
+                    Navegación por dirección (sin coordenadas exactas).
                   </ThemedText>
-                </Pressable>
-              </View>
+                )}
+              </>
             ) : (
               <ThemedText style={styles.noCoords}>
-                Sin coordenadas para navegación.
+                Sin ubicación para navegación.
               </ThemedText>
             )}
           </View>
@@ -237,6 +260,7 @@ const styles = StyleSheet.create({
   navBtnText: { color: '#0D0D0D', fontSize: 13, fontWeight: '800' },
   navBtnTextLight: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
   noCoords: { color: TEXT_MUTED, fontSize: 12, marginTop: 4 },
+  navHint: { color: TEXT_MUTED, fontSize: 11, marginTop: 8, fontStyle: 'italic' },
   itemRow: { flexDirection: 'row', marginBottom: 8 },
   itemQty: { color: '#8A6818', fontSize: 14, fontWeight: '700', width: 34 },
   itemName: { color: TEXT, fontSize: 14, flex: 1 },
