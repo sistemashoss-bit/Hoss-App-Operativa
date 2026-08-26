@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -210,24 +211,29 @@ export default function CitaDetailScreen() {
 
     setUploadingType(type);
     try {
-      const form = new FormData();
-      form.append('type', type);
-      form.append('photo', {
-        uri: asset.uri,
-        name: `${type}.jpg`,
-        type: asset.mimeType || 'image/jpeg',
-      } as any);
-
-      const res = await fetch(
+      // Subida nativa multipart: el `fetch` de Expo (winter) no acepta el objeto
+      // { uri } de RN en FormData, así que se usa expo-file-system, que sube el
+      // archivo local directamente. `fieldName`=photo y `parameters`=type casan
+      // con multer (`upload.single('photo')` + req.body.type).
+      const res = await FileSystem.uploadAsync(
         `${API_URL}/serviceappointments/mine/${appointmentId}/evidence`,
+        asset.uri,
         {
-          method: 'POST',
+          httpMethod: 'POST',
+          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+          fieldName: 'photo',
+          mimeType: asset.mimeType || 'image/jpeg',
+          parameters: { type },
           headers: { Authorization: `Bearer ${user?.token}` },
-          body: form,
         },
       );
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? 'No se pudo subir la foto');
+      if (res.status < 200 || res.status >= 300) {
+        let msg = 'No se pudo subir la foto';
+        try {
+          msg = JSON.parse(res.body)?.error ?? msg;
+        } catch {}
+        throw new Error(msg);
+      }
       await loadEvidence();
     } catch (e) {
       Alert.alert(
