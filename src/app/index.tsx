@@ -37,12 +37,9 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // El instalador entra directo a sus citas; el staff al menú de operaciones.
-  const homeFor = (actor: string) =>
-    actor === 'installer' ? '/citas' : '/menu';
-
+  // app-de-hoss es solo para installers: tras el login siempre a sus citas.
   if (user) {
-    return <Redirect href={homeFor(user.actor)} />;
+    return <Redirect href="/citas" />;
   }
 
   async function handleLogin() {
@@ -50,9 +47,9 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      const signedIn = await signIn(email.trim(), password);
+      await signIn(email.trim(), password);
 
-      router.replace(homeFor(signedIn.actor));
+      router.replace('/citas');
     } catch (e) {
       setError(
         e instanceof Error

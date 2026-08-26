@@ -5,11 +5,13 @@ import { Platform } from 'react-native';
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const SESSION_KEY = 'hoss.session';
 
-export type Actor = 'user' | 'installer' | 'customer';
+// app-de-hoss autentica solo Accounts (installers, y a futuro customers). El staff
+// tiene su propia app/web, así que aquí no existe el actor 'user'.
+export type Actor = 'installer' | 'customer';
 
 export type AuthUser = {
-  // INT para staff (user), UUID para accounts (installer/customer).
-  id: string | number;
+  // UUID de la Account (installer/customer).
+  id: string;
   actor: Actor;
   first_name: string;
   last_name: string;
@@ -35,13 +37,12 @@ function mapSession(data: any): AuthUser {
   const actor = data.actor as Actor;
   const profile = data.profile ?? {};
 
-  // Staff trae first_name/last_name propios. El installer los toma de su
-  // Installer ligado (el account no tiene nombre propio).
-  let first_name = profile.first_name ?? '';
-  let last_name = profile.last_name ?? '';
+  // La Account no tiene nombre propio: el installer los toma de su Installer ligado.
+  let first_name = '';
+  let last_name = '';
   if (actor === 'installer' && profile.installer) {
-    first_name = profile.installer.first_name ?? first_name;
-    last_name = profile.installer.last_name ?? last_name;
+    first_name = profile.installer.first_name ?? '';
+    last_name = profile.installer.last_name ?? '';
   }
 
   return {
@@ -104,8 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signIn(email: string, password: string) {
-    // Login único multi-actor: el server resuelve staff vs installer/customer
-    // por el email y devuelve { token, actor, profile }.
+    // Login de account (installer/customer): el server valida y devuelve
+    // { token, actor, profile }. El staff usa su propio login, no este endpoint.
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

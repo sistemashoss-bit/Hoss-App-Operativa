@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "app-de-hoss",
+    "name": "Hoss Installers",
     "slug": "app-de-hoss",
     "version": "1.0.0",
     "orientation": "portrait",
 
-    "icon": "./assets/images/app-logo.png",
+    "icon": "./assets/images/hoss-icon.png",
 
     "scheme": "appdehoss",
     "userInterfaceStyle": "automatic",
 
     "ios": {
-      "icon": "./assets/images/app-logo.png",
+      "icon": "./assets/images/hoss-icon.png",
       "bundleIdentifier": "com.hossapp.appdehoss"
     },
 
@@ -19,7 +19,7 @@
       "package": "com.hossapp.appdehoss",
 
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "foregroundImage": "./assets/images/hoss-icon-foreground.png",
         "backgroundColor": "#0D0D0D",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
