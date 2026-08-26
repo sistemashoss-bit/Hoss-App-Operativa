@@ -46,6 +46,7 @@ export type Appointment = {
 export const STATUS_META: Record<string, { label: string; color: string }> = {
   scheduled: { label: 'Programada', color: '#3B82F6' },
   in_progress: { label: 'En progreso', color: '#B68A1F' },
+  in_review: { label: 'En revisión', color: '#7A5CC0' },
   completed: { label: 'Completada', color: '#2E9E5B' },
   cancelled: { label: 'Cancelada', color: '#C65353' },
   rescheduled: { label: 'Reprogramada', color: '#D08A3E' },
