@@ -2,6 +2,8 @@ import * as SecureStore from 'expo-secure-store';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Platform } from 'react-native';
 
+import { registerPushToken, unregisterPushToken } from '@/lib/push';
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const SESSION_KEY = 'hoss.session';
 
@@ -90,7 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadSession()
       .then((stored) => {
         if (stored) {
-          setUser(JSON.parse(stored) as AuthUser);
+          const authUser = JSON.parse(stored) as AuthUser;
+          setUser(authUser);
+          // Refresca el push token al restaurar sesión (best-effort).
+          void registerPushToken(authUser.token);
         }
       })
       .catch(() => {})
@@ -101,6 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const authUser = mapSession(data);
     setUser(authUser);
     await saveSession(JSON.stringify(authUser));
+    // Registra este dispositivo para push (best-effort, no bloquea el login).
+    void registerPushToken(authUser.token);
     return authUser;
   }
 
@@ -123,6 +130,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    // Da de baja el token ANTES de limpiar la sesión (necesita el token para autenticar).
+    if (user?.token) {
+      await unregisterPushToken(user.token);
+    }
     setUser(null);
     await clearSession();
   }

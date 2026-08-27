@@ -49,7 +49,8 @@
           "cameraPermission": "HOSS Installers usa la cámara para las evidencias de instalación.",
           "photosPermission": "HOSS Installers accede a tus fotos para adjuntar evidencias."
         }
-      ]
+      ],
+      "expo-notifications"
     ],
 
     "experiments": {
