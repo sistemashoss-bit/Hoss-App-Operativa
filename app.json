@@ -18,6 +18,8 @@
     "android": {
       "package": "com.hossapp.appdehoss",
 
+      "googleServicesFile": "./google-services.json",
+
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/app-logo.png",
         "backgroundColor": "#0D0D0D",

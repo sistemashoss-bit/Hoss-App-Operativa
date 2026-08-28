@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "699428929601",
+    "project_id": "hossinstallers",
+    "storage_bucket": "hossinstallers.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:699428929601:android:35bb068408c73cb06946c0",
+        "android_client_info": {
+          "package_name": "com.hossapp.appdehoss"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0s1XE3AdsoQNW2q4C8KTrXShMco40s6Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

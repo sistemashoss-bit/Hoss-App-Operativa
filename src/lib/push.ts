@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 // Registro de push notifications (Expo). Por ahora solo "nueva cita asignada".
 // Push remoto requiere un development build (no funciona en Expo Go en Android desde
@@ -22,10 +22,16 @@ Notifications.setNotificationHandler({
 // Devuelve null si no aplica (web/emulador) o si el usuario negó permisos.
 async function getExpoToken(): Promise<string | null> {
   // Push real solo en dispositivo físico; en web/emulador no hay token.
-  if (Platform.OS === 'web' || !Device.isDevice) return null;
+  if (Platform.OS === 'web' || !Device.isDevice) {
+    Alert.alert('[push] abort', `no es dispositivo físico: ${Platform.OS} isDevice=${Device.isDevice}`);
+    return null;
+  }
 
   const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-  if (!projectId) return null;
+  if (!projectId) {
+    Alert.alert('[push] abort', 'falta projectId en expoConfig.extra.eas');
+    return null;
+  }
 
   // Android necesita un canal para que aparezca el prompt de permisos.
   if (Platform.OS === 'android') {
@@ -39,7 +45,10 @@ async function getExpoToken(): Promise<string | null> {
   if (status !== 'granted') {
     ({ status } = await Notifications.requestPermissionsAsync());
   }
-  if (status !== 'granted') return null;
+  if (status !== 'granted') {
+    Alert.alert('[push] abort', `permisos no concedidos, status = ${status}`);
+    return null;
+  }
 
   const { data } = await Notifications.getExpoPushTokenAsync({ projectId });
   return data;
@@ -49,8 +58,11 @@ async function getExpoToken(): Promise<string | null> {
 export async function registerPushToken(sessionToken: string): Promise<void> {
   try {
     const token = await getExpoToken();
-    if (!token) return;
-    await fetch(`${API_URL}/auth/push-tokens`, {
+    if (!token) {
+      Alert.alert('[push] sin token', 'getExpoToken devolvió null (ver motivo en el Alert previo o revisa dispositivo/permisos/projectId).');
+      return;
+    }
+    const res = await fetch(`${API_URL}/auth/push-tokens`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -58,8 +70,11 @@ export async function registerPushToken(sessionToken: string): Promise<void> {
       },
       body: JSON.stringify({ token, platform: Platform.OS }),
     });
-  } catch {
+    const body = await res.text().catch(() => '');
+    Alert.alert('[push] backend', `status ${res.status}\ntoken: ${token}\n${body}`);
+  } catch (e: any) {
     // Best-effort: si falla el registro, la app sigue funcionando sin push.
+    Alert.alert('[push] ERROR', String(e?.message ?? e));
   }
 }
 
