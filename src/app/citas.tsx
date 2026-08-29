@@ -172,12 +172,7 @@ export default function CitasScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         {/* NAVBAR */}
         <View style={styles.topBar}>
-          <View>
-            <ThemedText style={styles.brandMain}>MIS CITAS</ThemedText>
-            <ThemedText style={styles.brandSub}>
-              {user.first_name} {user.last_name}
-            </ThemedText>
-          </View>
+          <ThemedText style={styles.brandMain}>MIS CITAS</ThemedText>
 
           <Pressable
             onPress={() => setMenuOpen(true)}
@@ -311,7 +306,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   brandMain: { color: '#FFFFFF', fontSize: 18, fontWeight: '800', letterSpacing: 1 },
-  brandSub: { color: GOLD, fontSize: 11, fontWeight: '600', marginTop: 2 },
   avatar: {
     width: 40,
     height: 40,
