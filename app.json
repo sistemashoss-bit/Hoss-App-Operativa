@@ -39,7 +39,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0D0D0D",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/hoss.png",
           "imageWidth": 200
         }
