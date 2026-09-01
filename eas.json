@@ -20,7 +20,7 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api-dev.hoss.com.mx"
+        "EXPO_PUBLIC_API_URL": "https://api.hoss.com.mx"
       }
     }
   },

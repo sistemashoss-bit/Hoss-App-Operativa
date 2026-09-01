@@ -34,6 +34,7 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -138,14 +139,26 @@ export default function LoginScreen() {
                 Contraseña
               </ThemedText>
 
-              <TextInput
-                style={styles.input}
-                placeholder="Ingresa tu contraseña"
-                placeholderTextColor="#A7A198"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-              />
+              <View style={styles.passwordWrap}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="Ingresa tu contraseña"
+                  placeholderTextColor="#A7A198"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <Pressable
+                  style={styles.passwordToggle}
+                  onPress={() => setShowPassword((v) => !v)}
+                  hitSlop={8}
+                  accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  <ThemedText style={styles.passwordToggleText}>
+                    {showPassword ? 'Ocultar' : 'Mostrar'}
+                  </ThemedText>
+                </Pressable>
+              </View>
             </View>
 
             {/* ERROR */}
@@ -378,6 +391,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
 
     paddingHorizontal: 14,
+  },
+
+  passwordWrap: {
+    justifyContent: 'center',
+  },
+
+  passwordInput: {
+    paddingRight: 80,
+  },
+
+  passwordToggle: {
+    position: 'absolute',
+    right: 12,
+    height: '100%',
+    justifyContent: 'center',
+  },
+
+  passwordToggleText: {
+    color: '#8A6818',
+    fontSize: 13,
+    fontWeight: '700',
   },
 
   /*
